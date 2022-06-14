@@ -19,7 +19,6 @@ const enumerateServers = async ns => {
 	while(queue.length > 0) {
 		hostname = queue.shift();
 		neighbors = ns.scan(hostname);
-		//ns.print(`[findServers()] Processing server "${hostname}" with ${neighbors.length} neighbors...`);
 
 		for(let neighbor of neighbors) {
 			if(neighbor == 'home') continue;
@@ -33,7 +32,6 @@ const enumerateServers = async ns => {
 		await ns.sleep(100);
 	}
 
-	//ns.print(`[findServers()] Found ${servers.length} servers`);
 	return servers;
 };
 
@@ -113,17 +111,13 @@ export async function main(ns) {
 	while(true) {
 		const player = ns.getPlayer();
 		let servers = await enumerateServers(ns);
-		//let maxExp = [0, 1, null];
 		ns.print('Starting round @ ' + (new Date()).toLocaleTimeString());
 
 		for(let server of servers) {
 			if(server == 'darkweb') continue;  // Skip darkweb
 			let srv = ns.getServer(server);
-			//ns.print(`Processing host server "${server}"`);
 
 			if(!srv.hasAdminRights) {
-				//ns.print(`Attempting to r00t server "${server}"`);
-
 				// Not r00ted, attempt to open ports
 				if(haveScript(ns, 'BruteSSH.exe') && !srv.sshPortOpen) {
 					ns.brutessh(server);
@@ -153,25 +147,22 @@ export async function main(ns) {
 					ns.print(`R00ted ${server}!`);
 				}
 				else {
-					//ns.print(`Skipping host "${server}" since it can't be nuked yet`);
 					continue;  // Move on to next host server if can't nuke
 				}
 			}
 
 			if(!srv.backdoorInstalled && server != 'home' && !srv.purchasedByPlayer && player.hacking >= srv.requiredHackingSkill) {
-				// Signal BO if backdooring needed
-				//ns.tprint(`Server "${server}" needs backdooring!`);
 				if(ns.singularity) {
 					await serverConnect(ns, server);
 					await ns.singularity.installBackdoor();
 				}
 				else {
+					// Signal BO if backdooring needed
 					await ns.writePort(1, server);
 				}
 			}
 
 			if(srv.maxRam == 0) {
-				//ns.print(`Skipping useless host "${server}"`);
 				continue;  // Skip useless host servers
 			}
 
@@ -185,15 +176,6 @@ export async function main(ns) {
 					let hackTime = ns.getHackTime(target);
 					let maxRuntime = Math.max(...[hackTime, ns.getGrowTime(target), ns.getWeakenTime(target)]);
 					let threads = engagements[target] || null;
-
-					//ns.print(`Processing target "${target}"`);
-					/*
-					try {
-						let exp = ns.formulas.hacking.hackExp(tgt, ns.getPlayer());
-						if((exp / hackTime) > (maxExp[0] / maxExp[1]))
-							maxExp = [exp, hackTime, target];
-					} catch (_) {}
-					*/
 
 					if(threads != null && Math.max(...[threads.hack, threads.grow, threads.weak]) == 0) {
 						//ns.print(`Skipping target "${target}" with complete engagement`);
@@ -224,12 +206,11 @@ export async function main(ns) {
 							);
 							hackThreads = 0;
 						}
-						/*
+
 						if(hackThreads < 1) {
 							ns.print(`Skipping sub-threshold target "${target}"`);
 							continue;  // Skip sub-threshold targets
 						}
-						*/
 
 						// Calculate hack effect & weaken threads required to cancel it
 						let hackSec = ns.hackAnalyzeSecurity(hackThreads, target);
@@ -244,7 +225,6 @@ export async function main(ns) {
 						*/
 
 						let growThreads = 0;
-						//ns.print(`money=$${ns.nFormat(tgt.moneyAvailable, '0.0a')}, max=${ns.nFormat(tgt.moneyMax, '0.0a')}, growTarget=${growTarget}, growRatio=${growTarget / tgt.moneyAvailable}`);  // Debug
 						if(!drainMode && tgt.moneyAvailable < tgt.moneyMax) {
 							let growTarget = (tgt.moneyMax - tgt.moneyAvailable) * growRate;
 
@@ -281,7 +261,6 @@ export async function main(ns) {
 						minCost = Math.min(minCost, scriptRam);
 
 						if(actualThreads <= 0) {
-							//ns.print(`Ran out of RAM while tasking "${server}" -> "${target}" (${task})`);
 							break;
 						}
 
@@ -296,25 +275,17 @@ export async function main(ns) {
 
 					threads.time = performance.now() + maxRuntime;  // TODO: tweak?
 					if(getFreeRam(ns, server, reserved) < minCost) {
-						//ns.print(`Host server "${server}" fully tasked, moving on`);
 						break;  // Not enough RAM left for any more threads, move to next host server
 					}
-				}
-				else {
-					//ns.print(`Skipping unsuitable target "${target}"`);
 				}
 			}
 
 			if(!anyTargets) {
-				//ns.print('No valid targets found, engagements reset!');
 				engagements = {};
 			}
 
 			await ns.sleep(1000);
 		}
-
-		//if(maxExp[0] > 0)
-			//ns.print(`Best target: ${maxExp[0]}/${maxExp[1]} @ ${maxExp[2]}`);
 
 		await ns.sleep(3000);
 	}
