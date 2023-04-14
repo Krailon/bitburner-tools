@@ -1,7 +1,3 @@
-/*
-  Back Orifice - A hat tip to the OG backdoor
-*/
-
 /** @param {NS} ns */
 const findPath = async (ns, target) => {
 	let queue = [];
@@ -37,6 +33,7 @@ const termFocus = () => {
 const termInject = (term, cmd) => {
 	// Switch focus to terminal
 	//termFocus();
+	// TODO: wait for terminal focus
 
 	let handlers = Object.keys(term)[1];
 	term.value = cmd;
@@ -49,25 +46,46 @@ export async function main(ns) {
 	ns.disableLog('sleep');
 	ns.disableLog('scan');
 	ns.clearLog();
-	ns.print('Waiting for target designation...');
+	//ns.print('Waiting for target designation...');
 
-	const backdoorDelay = 15000;
-	const waitDelay = 5000;
+	//const backdoorDelay = 60000;
+	//const waitDelay = 5000;
 	const doc = parent['document'];
-	const term = doc.querySelector('#terminal-input');
-	while(true) {
-		let target = ns.readPort(1);
+	var term = null;
 
-		if(target != 'NULL PORT DATA') {
-			let path = await findPath(ns, target);
-			let cmd = path.join(';connect ') + '; backdoor';
-
-			ns.print(`Got target ${target}:\r\n${cmd}\r\n`);
-			termInject(term, cmd);
-			await ns.sleep(backdoorDelay);  // Some servers take forever to backdoor -.-'
+	while (true) {
+		term = doc.querySelector('#terminal-input');
+		if (term == null) {
+			ns.print('Waiting for console...');
+		}
+		else if (term.disabled) {
+			ns.print('Waiting for previous command to complete...');
 		}
 		else {
-			await ns.sleep(waitDelay);
+			break;
 		}
+
+		await ns.sleep(5000);
 	}
+
+	//while(true) {
+	let target = (ns.args.length > 0) ? ns.args[0] : ns.readPort(1);
+
+	if(target != 'NULL PORT DATA') {
+		let srv = ns.getServer(target);
+		if(srv.backdoorInstalled)
+			return;
+
+		let path = await findPath(ns, target);
+		let cmd = path.join(';connect ') + '; backdoor';
+
+		ns.print(`Got target ${target}:\r\n${cmd}\r\n`);
+		termInject(term, cmd);
+		//await ns.sleep(backdoorDelay);  // Some servers take forever to backdoor -.-'
+	}
+	else {
+		//await ns.sleep(waitDelay);
+		ns.print('Got NULL port data, doing nothing');
+	}
+	//}
 }
