@@ -66,11 +66,13 @@ export class TIXStock extends BaseStock {
 	}
 
 	buyLongs(shares) {
-		return TIXStock.ns.stock.buy(this.symbol, shares);
+		TIXStock.ns.tprint(`[StockMarket] Buying long position ${shares} of ${this.symbol}`);  // Debug
+
+		return TIXStock.ns.stock.buyStock(this.symbol, shares);
 	}
 
 	buyShorts(shares) {
-		return TIXStock.ns.stock.short(this.symbol, shares);
+		return TIXStock.ns.stock.buyShort(this.symbol, shares);
 	}
 
 	longCost(shares) {
@@ -78,7 +80,9 @@ export class TIXStock extends BaseStock {
 	}
 
 	sellLongs(shares=this.position.longs) {
-		return TIXStock.ns.stock.sell(this.symbol, shares);
+		TIXStock.ns.tprint(`[StockMarket] Selling long position ${shares} of ${this.symbol}`);  // Debug
+
+		return TIXStock.ns.stock.sellStock(this.symbol, shares);
 	}
 
 	sellShorts(shares=this.position.shorts) {
@@ -98,4 +102,20 @@ export class S4TIXStock extends TIXStock {
 	get volatility() {
 		return S4TIXStock.ns.stock.getVolatility(this.symbol);
 	}
+
+	test2() {
+		return S4TIXStock.ns;
+	}
 }
+
+export const formatNumber = (n, isMoney=true) => {
+	const units = ['', 'k', 'm', 'b', 't', 'q', 'u']
+	let unit = '';
+
+	while(Math.abs(n) > 1000) {
+		n /= 1000;
+		unit = units[units.indexOf(unit) + 1];
+	}
+
+	return (isMoney ? '$' : '') + `${n.toFixed(2)}${unit}`;
+};
