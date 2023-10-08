@@ -1,5 +1,5 @@
 import { BaseStock, TIXStock } from 'stock.lib';
-import { ExponentialMovingAverage, MovingAverageConvergeDiverge } from 'brain/moving-average';
+import { ExponentialMovingAverage, MovingAverageConvergeDiverge } from 'moving-average';
 
 // TODO: tweak experimentally
 const PERIOD = 6000;  // 6s
